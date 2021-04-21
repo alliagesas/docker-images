@@ -1,0 +1,4 @@
+nginx-proxy/data
+nginx-proxy/.env*
+nginx-proxy/!.env.sample
+.idea/
