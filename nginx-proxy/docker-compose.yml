@@ -21,8 +21,8 @@ services:
     logging:
       driver: ${NGINX_WEB_LOG_DRIVER:-json-file}
       options:
-        max-size: 4m
-        max-file: 10
+        max-size: "4m"
+        max-file: "10"
 
   docker-gen-auto:
     image: jwilder/docker-gen:latest
@@ -37,8 +37,8 @@ services:
     logging:
       driver: ${NGINX_GEN_LOG_DRIVER:-json-file}
       options:
-        max-size: 2m
-        max-file: 10
+        max-size: "2m"
+        max-file: "10"
 
   letsencrypt-auto:
     image: jrcs/letsencrypt-nginx-proxy-companion:latest
@@ -57,8 +57,8 @@ services:
     logging:
       driver: ${NGINX_LETSENCRYPT_LOG_DRIVER:-json-file}
       options:
-        max-size: 2m
-        max-file: 10
+        max-size: "2m"
+        max-file: "10"
 
 networks:
   default:
