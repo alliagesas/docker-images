@@ -14,7 +14,7 @@ apt-get install \
     software-properties-common
 
 # Add Docker’s official GPG key:
-curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
 
 # Add Docker's repository
 add-apt-repository \
@@ -26,7 +26,7 @@ add-apt-repository \
 apt-get update && apt-get install -y docker-ce docker-ce-cli containerd.io
 
 # Install docker-compose
-curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 chmod +x /usr/local/bin/docker-compose
 ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 docker-compose --version
