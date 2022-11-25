@@ -68,4 +68,7 @@ Toutes ces commandes doivent être exécutées dans le répertoire de l'applicat
     docker-compose down
     docker-compose up -d
     ```
-    
+
+Suppression des volumes pour ré-installation complète
+
+```docker-compose down --volumes```
