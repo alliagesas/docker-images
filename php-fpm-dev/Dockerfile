@@ -77,6 +77,7 @@ RUN apt-get install -y msmtp
 COPY msmtprc /etc/msmtprc
 RUN chown root:msmtp /etc/msmtprc
 RUN chmod 640 /etc/msmtprc
+RUN touch /var/log/msmtp.log; chmod 660 /var/log/msmtp.log
 
 # Clean setup
 RUN rm -rf /var/lib/apt/lists/*

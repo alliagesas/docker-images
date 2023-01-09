@@ -1,4 +1,4 @@
-FROM php:8.0-fpm-buster
+FROM php:8.2-fpm-buster
 
 # install FR locales
 ENV DEBIAN_FRONTEND noninteractive
@@ -99,7 +99,7 @@ RUN ln -s /usr/local/etc/php/php.ini-development /usr/local/etc/php/php.ini;
 
 # COPY CUSTOM CONFIGS
 ADD php.ini /usr/local/etc/php/conf.d/user-php.ini
-ADD logs.ini /usr/local/etc/php/conf.d/logs.ini
+ADD logs-8.2.ini /usr/local/etc/php/conf.d/logs.ini
 ADD uploads.ini /usr/local/etc/php/conf.d/uploads.ini
 ADD xdebug-8.0.ini /usr/local/etc/php/conf.d/xdebug.ini
 ADD opcache.ini /usr/local/etc/php/conf.d/opcache.ini
