@@ -1,0 +1,11 @@
+# Fichier utilisé pour ajouter des paramétres au fichier docker-compose.yml spécifique au projet
+# Les modifications de ce fichier ne seront pas intégrés au projet, et servent uniquement à la configuration
+# spécifique de l'installation. Voir https://docs.docker.com/compose/extends/#multiple-compose-files
+version: '3.7'
+
+services:
+
+  collabora:
+    extra_hosts:
+        # Si l'application n'est pas accessible depuis Internet (en mode DEV par exemple), il faut indiquer son adresse IP à Collabora
+      - intranet.dev.local:192.168.0.250

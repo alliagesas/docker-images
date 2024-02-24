@@ -1,0 +1,35 @@
+version: '3.7'
+
+networks:
+  proxy: # Réseau du serveur nginx-proxy. OBLIGATOIRE pour pouvoir proxyfier l'application
+    external:
+      name: proxy
+
+services:
+
+  # Collabora
+  collabora:
+    container_name: collabora
+    restart: always
+    image: collabora/code
+    expose:
+      - ${COLLABORA_VIRTUAL_PORT:-9980}
+    networks:
+      - proxy
+    environment:
+      # Adresse FQDN du serveur Collabora (collabora.mondomaine.com)
+      - VIRTUAL_HOST=${COLLABORA_VIRTUAL_HOST:-collabora.intranet.pingat.lan}
+      - VIRTUAL_PORT=${COLLABORA_VIRTUAL_PORT:-9980}
+      # Mettre l'adresse FQDN du serveur Collabora (collabora.mondomaine.com) pour activer le support SSL, sinon laisser vide
+      - LETSENCRYPT_HOST=${COLLABORA_VIRTUAL_HOST_SSL:-collabora.intranet.pingat.lan}
+      - LETSENCRYPT_EMAIL=${EMAIL_TECH:-tech@alliage-maintenance.com}
+      # TODO: EXPLIQUER le rôle
+      - aliasgroup1=${COLLABORA_ALIAS_GROUP1:-https://collabora\.intranet\.pingat\.lan}
+      - aliasgroup2=${COLLABORA_ALIAS_GROUP2:-https://intranet\.intranet\.lan,https://dev\.intranet\.pingat\.lan}
+      - username=${COLLABORA_ADMIN_USER:-admin}
+      - password=${COLLABORA_ADMIN_PASSWORD:-admin}
+      # NE PAS générer de certificat SSL, celui-ci est géré en amont par nginx-proxy !
+      - DONT_GEN_SSL_CERT=1
+      - server_name=${COLLABORA_VIRTUAL_HOST:-collabora.intranet.pingat.lan}
+      # DESACTIVATION de SSL, celui-ci est géré en amont par nginx-proxy !
+      - extra_params=--o:ssl.enable=false
