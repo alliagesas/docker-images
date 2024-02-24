@@ -1,33 +1,33 @@
-# Installation et configuration d'un serveur Nginx Proxy avec support SSL
+# Installation du composant nginx-proxy, serveur Web frontal
 
-Références:
-https://github.com/evertramos/nginx-proxy-automation
-https://hub.docker.com/r/jwilder/nginx-proxy
-https://olex.biz/2019/09/hosting-with-docker-nginx-reverse-proxy-letsencrypt/#nginx-reverse-proxy-and-ssl
-https://github.com/nginx-proxy/acme-companion
+Nginx-proxy est un micro-service tournant sous Docker. Celui-ci reçoit toutes les connexions clients en frontal, et distribue les demandes aux sous-service (Nginx, PHP, Mysql, etc...)
 
-## Server proxy Nginx
-Avant toute nouvelle installation, il faut tout d'abord lancer un conteneur Docker basé sur nginx-proxy.
-Celui-ci fera aussi de proxy/HA sur les instances clientes.
+La documentation complète est disponible à l'adresse suivante: [https://github.com/evertramos/nginx-proxy-automation](https://github.com/evertramos/nginx-proxy-automation)
 
-Créer le réseau "proxy", utilisé par les conteneurs de l'application:
+Au 1er lancement, lancer le script [setup.sh](setup.sh) directement en console, puis suivez les indications affichées.
+
+## Lancement des sous-applications ou sites
+
+Chaque sous-site, ou application doit être lancée depuis des containers Docker avec les variables d'environnement suivantes:
+
 ```
-sudo docker network create proxy
-```
-
-Lancer les conteneurs nginx-proxy et letsencrypt (certificats SSL)
-```
-docker-compose -f docker-compose-proxy.yml
+VIRTUAL_HOST=your.domain.com
+LETSENCRYPT_HOST=your.domain.com
+LETSENCRYPT_EMAIL=your.email@your.domain.com
+NETWORK=proxy
 ```
 
+* VIRTUAL_HOST: adresse FQDN de votre application ou site (sans le http:// !)
+* LETSENCRYPT_HOST: adresse FQDN de l'application SI elle doit être proposée via https- (certificat SSL). Celui-ci sera alors automatiquement généré et renouvelé.
+* LETSENCRYPT_EMAIL: adresse email recevant les notifications lors du renouvellement du certificat SSL. Non requis si le certificat SSL n'est pas utilisé.
+* NETWORK: nom du réseau au sein des services Docker. "proxy" par défaut. Ne pas changer sauf si vous savez ce que vous faites.
 
-## Rôle des dossiers et fichiers
-```
-./data # Dossier créé automatiquement, qui contient les certificats et autres configurations dynamiquement générés.
-./conf.d/proxy.conf # Options pour le proxy Nginx
-```
+Ces variables doivent être définies dans le fichier .env de chaque application et/ou service.
 
-## Lancer les services:
+## Relancer le service nginx-proxy
+
+Dans certains cas, il est nécessaire de relancer le service, par exemple lors de modifications manuelles dans la configuration.
+
 ```
-docker-compose up -d
+root@host:~/eiffidev# docker exec -it proxy-web-auto nginx -s reload
 ```
