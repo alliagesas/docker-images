@@ -1,0 +1,70 @@
+FROM php:8.4-fpm-bookworm
+
+# Ajustement de l'heure sur Paris
+ENV TZ=Europe/Paris
+
+# install FR locales
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get clean; \
+	apt-get update; \
+	apt-get install -y locales;
+RUN echo "fr_FR.UTF-8 UTF-8" > /etc/locale.gen && \
+    locale-gen fr_FR.UTF-8 && \
+    update-locale fr_FR.UTF-8
+ENV LC_ALL fr_FR.UTF-8
+
+# Install networks utils && required packages
+RUN apt-get install -y gcc libjpeg-dev libpng-dev libc-client-dev libkrb5-dev libldap2-dev libxml2-dev libzip-dev libfreetype6-dev iputils-ping;
+
+# Install the PHP extensions we need
+# KERBEROS / IMAP
+ARG PHPEXT_IMAP_VERSION=1.0.3
+RUN pecl bundle -d /usr/src/php/ext imap-${PHPEXT_IMAP_VERSION}
+RUN docker-php-ext-configure imap --with-kerberos --with-imap-ssl
+# GD
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg
+
+# MEMCACHED
+RUN apt-get install -y libmemcached-dev;
+RUN curl -L -o /tmp/memcached.tar.gz "https://github.com/php-memcached-dev/php-memcached/archive/v3.1.5.tar.gz" \
+  && mkdir -p memcached \
+  && tar -C memcached -zxvf /tmp/memcached.tar.gz --strip 1 \
+  && ( \
+    cd memcached \
+    && phpize \
+    && ./configure \
+    && make -j$(nproc) \
+    && make install \
+  ) \
+  && rm -r memcached \
+  && rm /tmp/memcached.tar.gz \
+  && docker-php-ext-enable memcached
+
+# https://github.com/mlocati/docker-php-extension-installer
+ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+RUN chmod +x /usr/local/bin/install-php-extensions
+RUN install-php-extensions intl xdebug exif gd imap ldap pcntl soap zip opcache mysqli pdo_mysql
+
+# NETTOYAGE
+RUN set -ex; \
+        apt-get remove -y gcc g++ libpng-dev libjpeg-dev libfreetype6-dev \
+        && rm -rf /tmp/pear;
+
+# Clean setup
+RUN rm -rf /var/lib/apt/lists/*
+
+# SET php.ini-developpement
+RUN ln -s /usr/local/etc/php/php.ini-development /usr/local/etc/php/php.ini;
+
+# COPY CUSTOM CONFIGS
+ADD php.ini /usr/local/etc/php/conf.d/user-php.ini
+ADD logs-8.4.ini /usr/local/etc/php/conf.d/logs.ini
+ADD uploads.ini /usr/local/etc/php/conf.d/uploads.ini
+ADD xdebug-8.4.ini /usr/local/etc/php/conf.d/xdebug.ini
+ADD opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+
+RUN sed -i -e "s/listen = 127.0.0.1:9000/listen = 9000/g" /usr/local/etc/php-fpm.d/www.conf;
+
+# START PHP-FPM
+CMD ["php-fpm"]
+EXPOSE 9000
