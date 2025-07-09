@@ -6,7 +6,8 @@ La configuration complète est disponible sur [https://sdk.collaboraonline.com/d
 
 Il existe plusieurs variables d'environnement qu'il faut paramétrer pour lancer le service Collabora: (voir fichier [docker-compose.yml](docker-compose.yml)). Pour les modifier, il faut utiliser le fichier .env placer à la racine du projet (au même niveau que docker-compose.yml)
 
-```
+Pour la configuration derrière un proxy (Apache / NGinx / NGinx-proxy-auto) voir [https://sdk.collaboraonline.com/docs/installation/Proxy_settings.html](https://sdk.collaboraonline.com/docs/installation/Proxy_settings.html)
+
 # Adresse FQDN du serveur collabora
 COLLABORA_VIRTUAL_HOST=collabora.eiffidev.alliage-maintenance.com
 # Mettre l'adresse FQDN du serveur Collabora (collabora.mondomaine.com) pour activer le support SSL, sinon laisser vide
@@ -20,8 +21,6 @@ COLLABORA_ALIAS_GROUP2=https://eiffidev\.alliage-maintenance\.com,https://dev\.e
 COLLABORA_ADMIN_USER=admin
 # Mot de passe de l'administrateur
 COLLABORA_ADMIN_PASSWORD=admin
-```
-
 ## Visualier les logs
 
 En cas d'erreurs les logs sont visibles via la commande: `root@host:~/eiffidev# docker logs -f collabora`

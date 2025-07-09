@@ -7,7 +7,7 @@ networks:
 
 services:
 
-  # Collabora
+  # Serveur Collabora
   collabora:
     container_name: collabora
     restart: always
@@ -31,5 +31,7 @@ services:
       # NE PAS générer de certificat SSL, celui-ci est géré en amont par nginx-proxy !
       - DONT_GEN_SSL_CERT=1
       - server_name=${COLLABORA_VIRTUAL_HOST:-collabora.intranet.pingat.lan}
-      # DESACTIVATION de SSL, celui-ci est géré en amont par nginx-proxy !
-      - extra_params=--o:ssl.enable=false
+      # DERRIERE APACHE: DESACTIVATION de SSL, celui-ci est géré en amont par nginx-proxy !
+      #- extra_params=--o:ssl.enable=false
+      # DERRIERE NGINX-PROXY-AUTO (désactiver SSL MAIS activer ssl.termination (voir fichier coolwsd.xml)
+      #- extra_params=--o:ssl.enable=false --o:ssl.termination=true
