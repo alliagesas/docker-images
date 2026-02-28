@@ -1,0 +1,29 @@
+# docker-compose.yml
+# see: https://www.it-connect.fr/tuto-traefik-reverse-proxy-avec-docker/
+
+networks:
+  proxy:
+    external: true
+
+services:
+  traefik:
+    image: traefik:latest
+    ports:
+      - "80:80" # HTTP entry points
+      - "443:443" # HTTPS entry points
+      - "8080:8080" # Trafik Dashboard
+    expose:
+      - 80
+      - 443
+      - 8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik.yml:/etc/traefik/traefik.yml:ro # Fichier de configuration de Treafic
+      - ./logs:/logs:rw # Logs
+      - ./certs:/certs # Certificats SSL
+    environment:
+      - TZ=Europe/Paris
+    networks:
+      - proxy
+    restart: unless-stopped
+

@@ -1,0 +1,48 @@
+# Configuration statique de Traefik
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+api:
+  dashboard: true # Dashboard Traefik : 8080
+  insecure: true
+
+entryPoints:
+  web:
+    address: ":80" # EntryPoint pour HTTP
+  websecure:
+    address: ":443" # EntryPoint pour HTTPS
+
+providers:
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false # Si "false", seuls les conteneurs avec le label traefik seront exposés
+
+certificatesResolvers:
+  letencrypt:
+    acme:
+      email: support@groupe-pingat.fr
+      storage: /certs/acme.json
+      caServer: https://acme-v02.api.letsencrypt.org/directory # prod (default)
+      # caServer: https://acme-staging-v02.api.letsencrypt.org/directory # staging
+      httpChallenge:
+        entryPoint: web
+
+log:
+  level: INFO #DEBUG # Niveau de log
+
+accessLog:
+  filePath: "/logs/traefik.log"
+  format: json
+  filters:
+    statusCodes:
+      - "200-299" # succès
+      - "400-599" # échecs - erreurs
+  fields:
+    headers:
+      defaultMode: drop # supprimer tous les headers pour en conserver uniquement 4
+      names:
+        User-Agent: keep
+        X-Real-Ip: keep
+        X-Forwarded-For: keep
+        X-Forwarded-Proto: keep
