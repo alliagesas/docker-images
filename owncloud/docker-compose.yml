@@ -1,0 +1,97 @@
+version: "3"
+
+volumes:
+  mysql:
+    driver: local
+  redis:
+    driver: local
+
+networks:
+  proxy:
+    external: true
+  default: # Réseau interne entre les services docker ci-dessous
+
+services:
+  owncloud:
+    image: owncloud/server:${OWNCLOUD_VERSION}
+    container_name: owncloud_server
+    restart: unless-stopped
+    ports:
+      - 8080
+    depends_on:
+      - mariadb
+      - redis
+    environment:
+      - OWNCLOUD_DOMAIN=${OWNCLOUD_DOMAIN}
+      - OWNCLOUD_TRUSTED_DOMAINS=${OWNCLOUD_TRUSTED_DOMAINS}
+      - OWNCLOUD_DB_TYPE=mysql
+      - OWNCLOUD_DB_NAME=${OWNCLOUD_DB_NAME}
+      - OWNCLOUD_DB_USERNAME=${OWNCLOUD_DB_USERNAME}
+      - OWNCLOUD_DB_PASSWORD=${OWNCLOUD_DB_PASSWORD}
+      - OWNCLOUD_DB_HOST=mariadb
+      - OWNCLOUD_ADMIN_USERNAME=${ADMIN_USERNAME}
+      - OWNCLOUD_ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - OWNCLOUD_MYSQL_UTF8MB4=true
+      - OWNCLOUD_REDIS_ENABLED=true
+      - OWNCLOUD_REDIS_HOST=redis
+      - OWNCLOUD_SKIP_CHOWN=true # Ne pas vérifier les droits sur le dossier contenant les fichiers
+      - OWNCLOUD_SKIP_CHMOD=true # Ne pas vérifier les droits sur le dossier contenant les fichiers
+    healthcheck:
+      test: ["CMD", "/usr/bin/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - ./data:/mnt/data
+      - ./data/files:/var/www/owncloud/data
+    networks:
+      - proxy
+      - default
+    labels: # TRAEFIK
+      - traefik.enable=true # Activation du service dans Traefik
+      - traefik.docker.network=proxy # Nom du réseau "proxy"
+      #- traefik.http.routers.owncloud.rule=Host(`${OWNCLOUD_DOMAIN}`) # Only ONE domain name
+      - traefik.http.routers.owncloud.rule=Host(`cloud.pingat.com`) || Host(`cloud.groupe-pingat.fr`) # Multiple domain names
+      - traefik.http.routers.owncloud.entrypoints=websecure
+      - traefik.http.services.owncloud.loadbalancer.server.port=8080 # NECESSAIRE ICI car Owncloud écoute sur le port 8080
+      - traefik.http.routers.owncloud.tls=true # Activation du SSL
+      - traefik.http.routers.owncloud.tls.certresolver=letencrypt # Client ACME
+
+  mariadb:
+    image: mariadb:10.11 # minimum required ownCloud version is 10.9
+    container_name: owncloud_mariadb
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=owncloud
+      - MYSQL_USER=${OWNCLOUD_DB_USERNAME}
+      - MYSQL_PASSWORD=${OWNCLOUD_DB_PASSWORD}
+      - MYSQL_DATABASE=${OWNCLOUD_DB_NAME}
+      - MARIADB_AUTO_UPGRADE=1
+    command: ["--max-allowed-packet=128M", "--innodb-log-file-size=64M"]
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-u", "root", "--password=owncloud"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - mysql:/var/lib/mysql
+    ports:
+      - 3306:3306 # A COMMENTER EN PRODUCTION !
+    networks:
+      - proxy # A supprimer lors de la mise en production. Utile ici uniquement pour accéder à Mysql via HeidiSQL
+      - default
+
+  redis:
+    image: redis:6
+    container_name: owncloud_redis
+    restart: unless-stopped
+    command: ["--databases", "1"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - redis:/data
+    networks:
+      - default
