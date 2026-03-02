@@ -1,0 +1,24 @@
+# docker-compose.yml
+# see: https://www.it-connect.fr/tuto-dockhand-administration-conteneurs-docker/
+
+services:
+  dockhand:
+    image: fnsys/dockhand:latest
+    container_name: dockhand
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /opt/docker-compose/dockhand/data:/app/data
+      - /opt:/opt # Dossier contenant les applications
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.dockhand-https.rule=Host(`docker2.pingat.lan`)"
+      - "traefik.http.routers.dockhand-https.entrypoints=web"
+      - "traefik.http.services.dockhand-https.loadbalancer.server.port=3000"
+
+networks:
+  proxy:
+    external: true
