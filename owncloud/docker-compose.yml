@@ -56,6 +56,12 @@ services:
       - traefik.http.services.owncloud.loadbalancer.server.port=8080 # NECESSAIRE ICI car Owncloud écoute sur le port 8080
       - traefik.http.routers.owncloud.tls=true # Activation du SSL
       - traefik.http.routers.owncloud.tls.certresolver=letencrypt # Client ACME
+      # Redirection HTTP => HTTPS : il faut créer un second "router" sur entrypoint=web pour utiliser le middelware "redirectScheme"
+      - traefik.http.routers.owncloud-http.entrypoints=web
+      - traefik.http.routers.owncloud-http.rule=Host(`cloud.pingat.com`) || Host(`cloud.groupe-pingat.fr`) # Multiple domain names
+      - traefik.http.routers.owncloud-http.middlewares=owncloud-https
+      - traefik.http.middlewares.owncloud-https.redirectScheme.scheme=https
+      - traefik.http.middlewares.owncloud-https.redirectScheme.permanent=true
 
   mariadb:
     image: mariadb:10.11 # minimum required ownCloud version is 10.9
