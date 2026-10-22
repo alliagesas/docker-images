@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VERSION="8.4"
+VERSION="8.5"
 
 docker build -t php-fpm -f "Dockerfile-${VERSION}" .
 # Changement de version de PHP ?"
